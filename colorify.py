@@ -4,6 +4,8 @@ if sys.platform.lower() == "win32":
     os.system('color')
 
 class Colorify:
+    """To make the CLI outputs look colorful"""
+
     colors = {
     'HEADER':'\033[95m',
     "OKBLUE":'\033[94m',
@@ -28,13 +30,10 @@ class Colorify:
     "LIGHTBLUE":'\033[94m',
     "PINK":'\033[95m',
     "LIGHTCYAN":'\033[96m'}
-    
-    
+
     @staticmethod
     def colorify(text,color,bold=False):
         if bold:
             return Colorify.colors['BOLD']+Colorify.colors[color]+str(text)+Colorify.colors['ENDCOLOR']
         else:
             return Colorify.colors[color]+str(text)+Colorify.colors['ENDCOLOR']
-
-

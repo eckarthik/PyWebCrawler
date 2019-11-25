@@ -2,6 +2,7 @@ import requests,os,random
 from requests.exceptions import TooManyRedirects,Timeout,ConnectionError
 
 class Requester:
+    """Will handle the HTTP Requests to be made"""
 
     def __init__(self, page_url,host, proxies=None, user_agents=None, headers=None, timeout=10):
         if proxies is None:
@@ -32,9 +33,10 @@ class Requester:
             'Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
         }
         try:
+            random_proxy = random.choice(self.proxies)
             response = requests.get(url=self.page_url,
                                     headers=headers,
-                                    proxies=random.choice(self.proxies),
+                                    proxies={random_proxy[0]:random_proxy[1]},
                                     verify=False,
                                     timeout=self.timeout)
         except TooManyRedirects:
@@ -55,5 +57,3 @@ class Requester:
             #We got a file
             response.close()
             return (self.page_url,"File")
-
-

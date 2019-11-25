@@ -1,5 +1,5 @@
-import threading,os,time,argparse,warnings,time,sys
-from queue import Queue
+import argparse,warnings,time,sys
+from concurrent.futures import ThreadPoolExecutor
 from utilities import *
 from spider import Spider
 from urllib import parse
@@ -17,30 +17,17 @@ parser.add_argument("--proxies",help="Proxies to use for making HTTP requests",d
 
 args = parser.parse_args()
 
-def create_worker_threads():
-    for i in range(0, args.thread_count):
-        t = threading.Thread(target=work)
-        #t.daemon = True
-        t.start()
+def work(url):
+    Spider.crawl_page("",url)
 
-def add_links_to_queue():
+def fill_queue():
     for link in file_to_set(project_name=args.project_name, file_name=queue_file):
-        queue.put(link)
-    queue.join()
-    crawl()
+        queue.add(link)
 
-def work():
-    while True:
-        url = queue.get()
-        # print("Sending URL - ",url," to crawl")
-        spider.crawl_page(threading.current_thread().name, url)
-        queue.task_done()
-
-def crawl():
-    links_in_queue = file_to_set(project_name=args.project_name, file_name=queue_file)
-    if len(links_in_queue) > 0:
-        # print("Links pending in queue - ",len(links_in_queue))
-        add_links_to_queue()
+def run(links):
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [executor.submit(work,link) for link in links] #Not bothering about the results of futures for the time being.
+        executor.shutdown(wait=True)
 
 if not args.base_url:
     print(parser.format_help())
@@ -53,21 +40,46 @@ else:
     if not args.thread_count:
         args.thread_count = 2
 
-    queue = Queue()
-    spider = Spider(args.project_name,domain_name,args.base_url)
+    # Initialized Data
+    print(Colorify.colorify("[!] BASE URL: ", "YELLOW") + Colorify.colorify(" " + str(args.base_url), "GREEN"))
+    print(Colorify.colorify("[!] THREAD COUNT: ", "YELLOW") + Colorify.colorify(" " + str(args.thread_count),"GREEN"))
+    print(Colorify.colorify("[!] PROJECT NAME: ", "YELLOW") + Colorify.colorify(" " + str(args.project_name),"GREEN"))
 
-    #Initialized Data
-    print(Colorify.colorify("[!] BASE URL: ","YELLOW")+Colorify.colorify(" "+str(args.base_url),"GREEN"))
-    print(Colorify.colorify("[!] THREAD COUNT: ", "YELLOW") + Colorify.colorify(" " + str(args.thread_count), "GREEN"))
-    print(Colorify.colorify("[!] PROJECT NAME: ", "YELLOW") + Colorify.colorify(" " + str(args.project_name), "GREEN"))
+    #Handle the proxies if passed
+    proxies = []
+    if args.proxies:
+        print(Colorify.colorify("[*] Checking the proxies......","GREEN"))
+        #Proxies were passed in the CLI arguments
+        for proxy in args.proxies.split(","):
+            if check_proxy(proxy):
+                proxies.append(proxy)
+    if len(proxies)==0:
+        print(Colorify.colorify("[!] None of the passed proxies were alive. Proceeding to crawl without using any proxies", "GREEN"))
+        spider = Spider(args.project_name, domain_name,
+                        args.base_url)  # Instantiate the Spider. Will crawl the Base URL and store all the URLs present in first page into queue_file
+    else:
+        spider = Spider(args.project_name, domain_name,
+                        args.base_url,proxies=proxies)  # Instantiate the Spider. Will crawl the Base URL and store all the URLs present in first page into queue_file
+
+    queue = set() #Internal queue to store the links
+
     print(Colorify.colorify(" Started crawling at "+args.base_url,"ORANGE"))
     print(Colorify.colorify("------------------------------------------------------------------------------------","RED"))
     print("                                              PROGRESS                                                     ")
 
-    time_before_start = time.time()
-    create_worker_threads()
-    crawl()
-    time_after_completion = time.time()
+    time_before_start = time.time() #Note down the time at the start of crawling
+
+    ### Starting to crawl the links ###
+    fill_queue() #Fill the queue with the links obatained from base url
+    while True:
+        if len(queue) == 0:
+            break
+        run(queue)
+        fill_queue()
+    ### End of crawling all links ###
+
+    time_after_completion = time.time() #Note down the time at the end of crawling
+
     print(Colorify.colorify("-------------------------------------------------------------------------------------","RED"))
     print("                                              SUMMARY                                                     ")
     print("Time Taken - ",float(time_after_completion-time_before_start)," seconds")

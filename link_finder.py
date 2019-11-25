@@ -4,11 +4,11 @@ from urllib import parse
 from requester import Requester
 class LinkFinder():
 
-    def __init__(self,base_url,page_url):
+    def __init__(self,base_url,page_url,proxies):
         self.base_url = base_url
         self.page_url = page_url
         self.links = set()
-        self.requester = Requester(page_url=page_url,host=parse.urlparse(self.page_url).netloc)
+        self.requester = Requester(page_url=page_url,host=parse.urlparse(self.page_url).netloc,proxies=proxies)
 
     def find_links(self):
         response = self.requester.request()

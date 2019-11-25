@@ -1,5 +1,6 @@
-import os
+import os,requests
 
+########### FILE RELATED OPERATIONS ###########
 def create_directory(project_name):
     if not os.path.exists(project_name):
         os.makedirs(project_name)
@@ -37,3 +38,14 @@ def set_to_file(data,project_name,file_name):
                 f.write(l+"\n")
             except UnicodeEncodeError as e:
                 print("Skipping link due to UnicodeEncodeError - ",str(e))
+
+########### ENF OF FILE RELATED OPERATIONS ###########
+
+########### OTHER USEFUL METHODS #################
+
+def check_proxy(proxy):
+    try:
+        requests.get("http://google.com",proxies={proxy.split(":")[0]:proxy.split(":")[1]})
+    except Exception as e:
+        return False
+    return True
