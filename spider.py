@@ -12,6 +12,8 @@ class Spider:
     domain_name = ''
     base_url = ''
     proxies = None
+    timeout = None
+    delay = None
     queue = set()
     crawled = set()
     connection_errors = set()
@@ -20,13 +22,15 @@ class Spider:
     too_many_redirects_errors = set()
     file_links = set()
 
-    def __init__(self,project_name,domain_name,base_url,proxies=None):
+    def __init__(self,project_name,domain_name,base_url,timeout,delay,proxies=None):
         Spider.project_name = project_name
         Spider.domain_name = domain_name
         Spider.base_url = base_url
         Spider.queue_file = "queue.txt"
         Spider.crawled_file = "crawled.txt"
         Spider.proxies = proxies
+        Spider.timeout = timeout
+        Spider.delay = delay
         self.startup()
         self.crawl_page("First Page",page_url=base_url)
 
@@ -52,7 +56,7 @@ class Spider:
                     "                               In Queue - {0}         Crawled - {1}                         \n".format(
                         len(Spider.queue), len(Spider.crawled)), "GREEN"))
                 sys.stdout.flush()
-            links_finder = LinkFinder(base_url=Spider.base_url,page_url=page_url,proxies=Spider.proxies)
+            links_finder = LinkFinder(base_url=Spider.base_url,page_url=page_url,proxies=Spider.proxies,timeout=Spider.timeout,delay=Spider.delay)
             links_from_link_finder = links_finder.find_links()
             if isinstance(links_from_link_finder,tuple): #We got some errors with one of the link, let's handle and categorize them
                 if links_from_link_finder[1] == "TooManyRedirects":
