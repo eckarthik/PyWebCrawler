@@ -26,24 +26,7 @@ This tool uses a number of open source projects to work properly:
 * [Requests](https://pypi.org/project/requests/) - To make GET requests to the URLs
 
 
-# Usage
-Usage Instructions
 
-```console
-C:\Users\PyWebCrawler>python main.py
-usage: main.py [-u BASE_URL] [-t THREAD_COUNT] [--project-name PROJECT_NAME]
-               [--timeout TIMEOUT] [--delay DELAY] [--proxies PROXIES]
+### Usage
 
-Fastest Web Crawler
-
-optional arguments:
-  -u BASE_URL, --url BASE_URL
-                        Base URL to Crawl
-  -t THREAD_COUNT, --threads THREAD_COUNT
-                        Number of threads to run this crawler on
-  --project-name PROJECT_NAME
-                        Project Name
-  --timeout TIMEOUT     HTTP request timeout
-  --delay DELAY         Delay between each request
-  --proxies PROXIES     Proxies to use for making HTTP requests
-```
+![usage demo](https://images2.imgbox.com/18/b4/ZUQeFpWu_o.png)
