@@ -20,6 +20,7 @@ args = parser.parse_args()
 
 def work(url):
     Spider.crawl_page("",url)
+    queue.remove(url)
 
 def fill_queue():
     for link in file_to_set(project_name=project_name, file_name=queue_file):
@@ -75,19 +76,23 @@ else:
 
     ### Starting to crawl the links ###
     fill_queue() #Fill the queue with the links obatained from base url
-
+    print("Initial Queue Length = ", len(queue))
     if depth==-1:# Crawl until the user stops
         while True:
-            if len(queue) == 0:
+            if len(queue)>0:
+                run(queue)
+                fill_queue()
+            else:
                 break
-            run(queue)
-            fill_queue()
+
+            print("Queue Length = ",len(queue))
     else:
         while depth>0:
             run(queue)
             fill_queue()
             depth-=1
             print("Current remaining depth = ", depth)
+
 
     ### End of crawling all links ###
 
