@@ -1,6 +1,7 @@
-# Python Web Crawler
+# Python Web Crawler [![Build Status](https://travis-ci.org/eckarthik/PyWebCrawler.svg?branch=master)](https://travis-ci.org/eckarthik/PyWebCrawler)
 
 This is a web crawler tool that will help you to crawl the website you need for links.
+
 
 # Features!
 
