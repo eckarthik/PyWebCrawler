@@ -1,7 +1,8 @@
 from utilities import *
 from link_finder import LinkFinder
-import sys,time
+import sys, time
 from colorify import Colorify
+
 
 class Spider:
     """Spider Class"""
@@ -9,11 +10,13 @@ class Spider:
     project_name = ''
     queue_file = ''
     crawled_file = ''
+    urls_with_titles_file = ''
     domain_name = ''
     base_url = ''
     proxies = None
     timeout = None
     delay = None
+    gather_titles = None
     queue = set()
     crawled = set()
     connection_errors = set()
@@ -22,43 +25,45 @@ class Spider:
     too_many_redirects_errors = set()
     file_links = set()
 
-    def __init__(self,project_name,domain_name,base_url,timeout,delay,proxies=None):
+    def __init__(self, project_name, domain_name, base_url, timeout, delay, gather_titles, proxies=None):
         Spider.project_name = project_name
         Spider.domain_name = domain_name
         Spider.base_url = base_url
         Spider.queue_file = "queue.txt"
         Spider.crawled_file = "crawled.txt"
+        Spider.urls_with_titles_file = "urls_with_titles.csv"
         Spider.proxies = proxies
         Spider.timeout = timeout
         Spider.delay = delay
+        Spider.gather_titles = gather_titles
         self.startup()
-        self.crawl_page("First Page",page_url=base_url)
+        self.crawl_page("First Page", page_url=base_url)
 
     @staticmethod
-    def startup(): #Creates required files on startup
-        print("Startup Executed")
+    def startup():  # Creates required files on startup
         create_directory(Spider.project_name)
-        create_files(Spider.project_name,Spider.queue_file,data=Spider.base_url)
-        create_files(Spider.project_name,Spider.crawled_file,data='')
-        Spider.queue = file_to_set(project_name=Spider.project_name,file_name=Spider.queue_file)
-        Spider.crawled = file_to_set(project_name=Spider.project_name,file_name=Spider.crawled_file)
+        create_files(Spider.project_name, Spider.queue_file, data=Spider.base_url)
+        create_files(Spider.project_name, Spider.crawled_file, data='')
+        if Spider.gather_titles:
+            create_csv_file(Spider.project_name, Spider.urls_with_titles_file,
+                            header_row=["URL", "TITLE"])  # File to store urls with their titles
+        Spider.queue = file_to_set(project_name=Spider.project_name, file_name=Spider.queue_file)
+        Spider.crawled = file_to_set(project_name=Spider.project_name, file_name=Spider.crawled_file)
 
     @staticmethod
-    def crawl_page(thread_name,page_url):
+    def crawl_page(thread_name, page_url):
         if not page_url in Spider.crawled:
-            if not Spider.queue==1:
+            if not Spider.queue == 1:
                 sys.stdout.write(Colorify.colorify(
                     "                               In Queue - {0}         Crawled - {1}                         \r".format(
                         len(Spider.queue), len(Spider.crawled)), "GREEN"))
                 sys.stdout.flush()
-            else:
-                sys.stdout.write(Colorify.colorify(
-                    "                               In Queue - {0}         Crawled - {1}                         \n".format(
-                        len(Spider.queue), len(Spider.crawled)), "GREEN"))
-                sys.stdout.flush()
-            links_finder = LinkFinder(base_url=Spider.base_url,page_url=page_url,proxies=Spider.proxies,timeout=Spider.timeout,delay=Spider.delay)
-            links_from_link_finder = links_finder.find_links()
-            if isinstance(links_from_link_finder,tuple): #We got some errors with one of the link, let's handle and categorize them
+            links_finder = LinkFinder(base_url=Spider.base_url, page_url=page_url, proxies=Spider.proxies,
+                                      gather_titles=Spider.gather_titles, timeout=Spider.timeout, delay=Spider.delay)
+            links_from_link_finder = links_finder.get_urls()
+            if isinstance(links_from_link_finder,
+                          tuple):  # We got some errors with one of the link, let's handle and categorize them
+                print(" \n\n\n\n\nWe got some error")
                 if links_from_link_finder[1] == "TooManyRedirects":
                     Spider.too_many_redirects_errors.add(links_from_link_finder[0])
                     Spider.update_queue_crawled_files(links_from_link_finder[0])
@@ -73,11 +78,16 @@ class Spider:
                     Spider.update_queue_crawled_files(links_from_link_finder[0])
                 elif links_from_link_finder[1] == "File":
                     Spider.file_links.add(links_from_link_finder[0])
+                    print("FIles currently = ",Spider.file_links)
                     Spider.update_queue_crawled_files(links_from_link_finder[0])
 
             else:
-                #We got a bunch of links from the link finder
-                Spider.add_links_to_queue(links_from_link_finder)
+                if Spider.gather_titles:
+                    # Save the url and its title
+                    append_to_csv(Spider.project_name, Spider.urls_with_titles_file,
+                                  data=[links_from_link_finder["page_url"], links_from_link_finder["page_title"]])
+                # We got a bunch of links from the link finder
+                Spider.add_links_to_queue(links_from_link_finder["urls_in_page"])
                 Spider.update_queue_crawled_files(page_url)
 
     @staticmethod
@@ -96,5 +106,5 @@ class Spider:
 
     @staticmethod
     def save_data_to_files():
-        set_to_file(project_name=Spider.project_name,data=Spider.queue,file_name=Spider.queue_file)
-        set_to_file(project_name=Spider.project_name,data=Spider.crawled,file_name=Spider.crawled_file)
+        set_to_file(project_name=Spider.project_name, data=Spider.queue, file_name=Spider.queue_file)
+        set_to_file(project_name=Spider.project_name, data=Spider.crawled, file_name=Spider.crawled_file)

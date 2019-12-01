@@ -1,3 +1,6 @@
 language: python
 script:
-  - python main.py --url=https://eckarthik.blogspot.com --delay=2 --proxies=186.229.25.18:8080 --threads=4 
+  - python main.py --url=https://eckarthik.blogspot.com --delay=2 --proxies=186.229.25.18:8080,195.62.70.22:8080,50.210.111.187:8080,185.158.8.105:8080,41.190.27.130:8080 --threads=1
+  - python main.py --url=https://eckarthik.blogspot.com --delay=2 --timeout=20 --project-name=eckarthik2
+  - python main.py --url=https://eckarthik.blogspot.com --delay=2 --timeout=20 --project-name=eckarthik3 --depth=1
+  - python main.py --url=https://eckarthik.blogspot.com --delay=2 --timeout=20 --project-name=eckarthik4 --gather-titles=True
