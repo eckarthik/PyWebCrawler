@@ -1,6 +1,6 @@
 from utilities import *
 from link_finder import LinkFinder
-import sys, time
+import sys
 from colorify import Colorify
 
 
@@ -17,6 +17,7 @@ class Spider:
     timeout = None
     delay = None
     gather_titles = None
+    search_text = None
     queue = set()
     crawled = set()
     connection_errors = set()
@@ -25,7 +26,7 @@ class Spider:
     too_many_redirects_errors = set()
     file_links = set()
 
-    def __init__(self, project_name, domain_name, base_url, timeout, delay, gather_titles, proxies=None):
+    def __init__(self, project_name, domain_name, base_url, timeout, delay, gather_titles, search_text, proxies=None):
         Spider.project_name = project_name
         Spider.domain_name = domain_name
         Spider.base_url = base_url
@@ -36,6 +37,7 @@ class Spider:
         Spider.timeout = timeout
         Spider.delay = delay
         Spider.gather_titles = gather_titles
+        Spider.search_text = search_text
         self.startup()
         self.crawl_page("First Page", page_url=base_url)
 
@@ -59,11 +61,10 @@ class Spider:
                         len(Spider.queue), len(Spider.crawled)), "GREEN"))
                 sys.stdout.flush()
             links_finder = LinkFinder(base_url=Spider.base_url, page_url=page_url, proxies=Spider.proxies,
-                                      gather_titles=Spider.gather_titles, timeout=Spider.timeout, delay=Spider.delay)
+                                      gather_titles=Spider.gather_titles, search_text=Spider.search_text, timeout=Spider.timeout, delay=Spider.delay)
             links_from_link_finder = links_finder.get_urls()
             if isinstance(links_from_link_finder,
                           tuple):  # We got some errors with one of the link, let's handle and categorize them
-                print(" \n\n\n\n\nWe got some error")
                 if links_from_link_finder[1] == "TooManyRedirects":
                     Spider.too_many_redirects_errors.add(links_from_link_finder[0])
                     Spider.update_queue_crawled_files(links_from_link_finder[0])
@@ -78,7 +79,6 @@ class Spider:
                     Spider.update_queue_crawled_files(links_from_link_finder[0])
                 elif links_from_link_finder[1] == "File":
                     Spider.file_links.add(links_from_link_finder[0])
-                    print("FIles currently = ",Spider.file_links)
                     Spider.update_queue_crawled_files(links_from_link_finder[0])
 
             else:

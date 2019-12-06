@@ -6,7 +6,10 @@ from requester import Requester
 
 class LinkFinder():
 
-    def __init__(self, base_url, page_url, proxies, gather_titles, timeout, delay):
+    error_with_link_flag = False
+    error_with_link_detail = None
+
+    def __init__(self, base_url, page_url, proxies, gather_titles, search_text, timeout, delay):
         self.base_url = base_url
         self.page_url = page_url
         self.delay = delay  # Delay in seconds between each HTTP Request
@@ -14,6 +17,7 @@ class LinkFinder():
         self.url_with_title = dict()
         self.gather_titles = gather_titles
         self.page_title = None
+        self.search_text = search_text
         self.requester = Requester(page_url=page_url, host=parse.urlparse(self.page_url).netloc, proxies=proxies,
                                    timeout=timeout)
 
@@ -22,9 +26,13 @@ class LinkFinder():
         time.sleep(self.delay)
         if isinstance(response, tuple):
             # Some error occured with the page, we did not get a response content. Returning it to the spider to handle
-            return response
+            LinkFinder.error_with_link_flag = True
+            LinkFinder.error_with_link_detail = response
         else:
             bs4_object = BeautifulSoup(response, 'html.parser')
+            if self.search_text is not None:
+                if self.search_text.lower() in bs4_object.find('body').text.lower():
+                    print("Given search text was found in - ", self.page_url)
             self.page_title = bs4_object.find("title").text
             all_anchor_tags = bs4_object.find_all('a')
             for anchor_tag in all_anchor_tags:
@@ -46,8 +54,12 @@ class LinkFinder():
 
     def get_urls(self):
         self.find_urls()
-        to_return = dict()
-        to_return["page_url"] = self.page_url
-        to_return["page_title"] = self.page_title
-        to_return["urls_in_page"] = self.urls
-        return to_return
+        if LinkFinder.error_with_link_flag:
+            LinkFinder.error_with_link_flag = False
+            return LinkFinder.error_with_link_detail
+        else:
+            to_return = dict()
+            to_return["page_url"] = self.page_url
+            to_return["page_title"] = self.page_title
+            to_return["urls_in_page"] = self.urls
+            return to_return

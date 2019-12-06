@@ -1,9 +1,13 @@
-import argparse, warnings, time, sys
+import argparse
+import sys
+import time
+import warnings
 from concurrent.futures import ThreadPoolExecutor
-from utilities import *
-from spider import Spider
 from urllib import parse
+
 from colorify import Colorify
+from spider import Spider
+from utilities import *
 
 warnings.filterwarnings('ignore')
 
@@ -18,6 +22,8 @@ parser.add_argument("--proxies", help="Proxies to use for making HTTP requests",
 parser.add_argument("--depth", help="Number of levels to crawl", dest="depth", type=int)
 parser.add_argument("--gather-titles", help="Creates a CSV file with page urls and their respective titles",
                     dest="gather_titles", type=bool)
+parser.add_argument("--search-text", help="Search for the text throughout the website",
+                    dest="search_text", type=str)
 
 args = parser.parse_args()
 
@@ -50,6 +56,7 @@ else:
     timeout = args.timeout or 5
     depth = args.depth or -1
     gather_titles = args.gather_titles or False
+    search_text = args.search_text or None
 
     # Initialized Data
     print(Colorify.colorify("[!] BASE URL: ", "YELLOW") + Colorify.colorify(" " + str(args.base_url), "GREEN"))
@@ -58,7 +65,6 @@ else:
     print(Colorify.colorify(" Started crawling at " + args.base_url + "\n", "ORANGE"))
     print(Colorify.colorify("------------------------------------------------------------------------------------",
                             "RED"))
-
 
     # Check if project already exists
     if check_project_directory_exists(project_name):
@@ -75,7 +81,7 @@ else:
                 pass
             elif choice.lower() == "no":
                 print(Colorify.colorify(
-                    "[!] Please delete the existing directory or pass --project-name paramter with a name for the project",
+                    "[!] Please delete the existing directory or pass --project-name parameter with a new name",
                     "RED"))
                 sys.exit(0)
             else:
@@ -108,15 +114,16 @@ else:
                 "[!] None of the passed proxies were alive. Proceeding to crawl without using any proxies",
                 "GREEN"))
             spider = Spider(project_name, domain_name,
-                            args.base_url, timeout, delay, gather_titles)
+                            args.base_url, timeout, delay, gather_titles, search_text)
         else:
-            print(Colorify.colorify("[!] " + str(len(proxies)) + " were alive. Proceeding to crawl ny using these proxies",
-                                    "GREEN"))
+            print(Colorify.colorify(
+                "[!] " + str(len(proxies)) + " were alive. Proceeding to crawl ny using these proxies",
+                "GREEN"))
             spider = Spider(project_name, domain_name,
-                            args.base_url, timeout, delay, gather_titles, proxies=proxies)
+                            args.base_url, timeout, delay, gather_titles, search_text, proxies=proxies)
     else:
         spider = Spider(project_name, domain_name,
-                        args.base_url, timeout, delay, gather_titles)
+                        args.base_url, timeout, delay, gather_titles, search_text)
 
     queue = set()  # Internal queue to store the links
     print("                                              PROGRESS                                                     ")
@@ -150,9 +157,8 @@ else:
     print("                                              SUMMARY                                                     ")
     print("Time Taken - ", float(time_after_completion - time_before_start), " seconds")
     print("Speed - ", int(len(spider.crawled) / (time_after_completion - time_before_start)), " requests/second")
-    print("Files - ",len(spider.file_links))
+    print("Files - ", len(spider.file_links))
     print("Unknown Errors - ", len(spider.unknown_errors))
     print("Timeout Errors - ", len(spider.timeout_errors))
     print("Connection Errors - ", len(spider.connection_errors))
     print("TooManyRedirect Errors - ", len(spider.too_many_redirects_errors))
-    sys.exit(0)
