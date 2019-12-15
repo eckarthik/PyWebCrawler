@@ -43,7 +43,16 @@ def run(links):
     futures = [executor.submit(work, link) for link in links]  # Not bothering about results of futures for time being.
     executor.shutdown(wait=True)
 
+    # Tool name
+print(Colorify.colorify(Colorify.colorify("""
+    ____       _       __     __    ______                    __         
+   / __ \__  _| |     / /__  / /_  / ____/________ __      __/ /__  _____
+  / /_/ / / / / | /| / / _ \/ __ \/ /   / ___/ __ `/ | /| / / / _ \/ ___/
+ / ____/ /_/ /| |/ |/ /  __/ /_/ / /___/ /  / /_/ /| |/ |/ / /  __/ /    
+/_/    \__, / |__/|__/\___/_.___/\____/_/   \__,_/ |__/|__/_/\___/_/     
+      /____/
 
+    ""","BOLD"),"GREEN"))
 if not args.base_url:
     print(parser.format_help())
 else:
