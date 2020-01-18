@@ -5,9 +5,9 @@ import warnings
 from concurrent.futures import ThreadPoolExecutor
 from urllib import parse
 
-from colorify import Colorify
-from spider import Spider
-from utilities import *
+from pywebcrawler.colorify import Colorify
+from pywebcrawler.spider import Spider
+from pywebcrawler.utilities import *
 
 warnings.filterwarnings('ignore')
 

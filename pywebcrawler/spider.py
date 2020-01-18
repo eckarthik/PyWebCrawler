@@ -1,7 +1,7 @@
-from utilities import *
-from link_finder import LinkFinder
+from pywebcrawler.utilities import *
+from pywebcrawler.link_finder import LinkFinder
 import sys
-from colorify import Colorify
+from pywebcrawler.colorify import Colorify
 
 
 class Spider:

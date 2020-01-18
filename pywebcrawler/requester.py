@@ -1,7 +1,5 @@
 import requests, os, random
 from requests.exceptions import TooManyRedirects, Timeout, ConnectionError
-
-
 class Requester:
     """Will handle the HTTP Requests to be made"""
 
@@ -21,10 +19,10 @@ class Requester:
 
     def startup(self):
         # Get the user agents
-        with open(os.path.join(os.getcwd(), "data", "useragents.txt"), "r") as file:
+        with open(os.path.join(os.path.dirname(__file__), "data", "useragents.txt"), "r") as file:
             if self.user_agents is None:
                 self.user_agents = [user_agent.replace("\n", "") for user_agent in file]
-        with open(os.path.join(os.getcwd(), "data", "mimetypes.txt"), "r") as file:
+        with open(os.path.join(os.path.dirname(__file__), "data", "mimetypes.txt"), "r") as file:
             self.mime_types = [mime_type.replace("\n", "") for mime_type in file]
 
     def request(self):

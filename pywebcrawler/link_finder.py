@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 import time
 from urllib import parse
-from requester import Requester
+from pywebcrawler.requester import Requester
 
 
 class LinkFinder():
